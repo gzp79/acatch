@@ -39,5 +39,4 @@ set( acatch_src_private
 
 add_library( "acatch" STATIC ${acatch_src_public} ${acatch_src_private} )
 target_include_directories( "acatch" PUBLIC ${acatch_incdir_public} )
-set_target_properties( "acatch" PROPERTIES FOLDER "acatch" )
 
