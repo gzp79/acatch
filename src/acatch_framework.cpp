@@ -33,7 +33,8 @@ Framework::Framework()
     , mTrackerContext( nullptr )
     , mTestCaseTracker( nullptr )
     , mCurrentResult( nullptr )
-    , mInAssertTest( false ) {
+    , mInAssertTest( false )
+    , mPreInitCompleted( false ) {
 }
 
 
@@ -71,10 +72,26 @@ void Framework::registerTestCase( ITestCase* aTestCase ) {
 }
 
 
+void Framework::registerPreInit( FnPreInit aPreInit ) {
+  mTestRegistry.registerPreInit( aPreInit );
+}
+
+
+/// Execute all the preinit functions if not yet executed
+void Framework::runPreinits() {
+  for( auto fn : mTestRegistry.getAllPreinits() ) {
+    fn();
+  }
+  mPreInitCompleted = true;
+}
+
+
 /// Execute the test-cases corresponding to the filters
 bool Framework::runAllTests() {
   TestRunResult runResult;
   ConstTestCaseInfoRefs testCaseInfos;
+
+  ACATCH_INTERNAL_ASSERT( mPreInitCompleted );
 
   std::vector<ITestCase*> alltests = mTestRegistry.getAllTests(
     TestRegistry::RunOrder::InLexicographicalOrder );
@@ -174,7 +191,7 @@ void Framework::handleFatalErrorCondition( const std::string& aMessage ) {
   if( !aMessage.empty() )
     mCurrentResult->logMessage( TestCaseResult::Error, aMessage );
   reportNow();
-  exit( -1 );  
+  exit( -1 );
   // from signal handle it is not a good thing to throw exceptions (and not possible on some platforms)
   // and as there is no other way to inform the framework of the failure now it's better to exit (and terminate gracefully)
 }

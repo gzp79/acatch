@@ -27,6 +27,8 @@ public:
   bool matchFilter( const std::string& aName );
 
   void registerTestCase( ITestCase* aTestCase );
+  void registerPreInit( FnPreInit aPreInit );
+  void runPreinits();
   bool runAllTests();
   void reportAllTests();
 
@@ -56,6 +58,7 @@ private:
   TestRegistry mTestRegistry;
   ITestReport* mTestReport;
 
+  bool mPreInitCompleted;
   bool mInAssertTest;
   TrackerContext* mTrackerContext;
   ITracker* mTestCaseTracker;

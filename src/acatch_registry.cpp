@@ -51,4 +51,8 @@ void AutoReg::registerTestCase( ITestCase* aTestCase ) {
   theACatch().registerTestCase( aTestCase );
 }
 
+void AutoReg::registerPreInit( FnPreInit aPreInit ) {
+	theACatch().registerPreInit( aPreInit );
+}
+
 } // namespace ACatch

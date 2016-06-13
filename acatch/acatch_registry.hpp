@@ -46,6 +46,7 @@ protected:
 };
 typedef std::unique_ptr<ITestCase> ATestCase;
 
+typedef void(*FnPreInit)();
 
 /// Test a class through the given function.
 /// During each invocation a new instance of the class is created.
@@ -158,10 +159,16 @@ public:
     mFunctions.emplace_back( aTestCase );
   }
 
+  void registerPreInit( FnPreInit aPreInit ) {
+	  mPreInit.emplace_back( aPreInit );
+  }
+
+  const std::vector<FnPreInit>& getAllPreinits() const { return mPreInit; }
   std::vector<ITestCase*> getAllTests( RunOrder aOrder ) const;
 
 private:
   std::vector<ATestCase> mFunctions;
+  std::vector<FnPreInit> mPreInit;
 };
 
 //-----------------------------------------------------------------------------
@@ -190,12 +197,17 @@ struct ACATCH_API AutoReg
       registerTestCase( aTestCase );
   }
 
+  AutoReg( FnPreInit aPreInit ) {
+    registerPreInit( aPreInit );
+  }
+
   AutoReg( const AutoReg& ) = delete;
   AutoReg( const AutoReg&& ) = delete;
   AutoReg& operator=( const AutoReg& ) = delete;
 
 private:
   void registerTestCase( ITestCase* aTestCase );
+  void registerPreInit( FnPreInit aPreInit );
 };
 
 } // namespace ACatch

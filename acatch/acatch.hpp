@@ -135,6 +135,14 @@
 
 // test framework API macros
 
+#define ACATCH_PREINIT()                                                    \
+  static void ACATCH_UNIQUE_NAME( acatch_preinit )( );                      \
+  namespace {                                                               \
+  ::ACatch::AutoReg ACATCH_UNIQUE_NAME( acatch_internal_Autoregister )(     \
+    ACATCH_UNIQUE_NAME( acatch_preinit ) );                                 \
+  }                                                                         \
+  static void ACATCH_UNIQUE_NAME( acatch_preinit )( )
+
 #define ACATCH_TEST_CASE( NAME )                                                         \
   static void ACATCH_UNIQUE_NAME( acatch_internal_TestCase )( );                         \
   namespace {                                                                            \
@@ -151,15 +159,15 @@
   ::ACatch::AutoReg ACATCH_UNIQUE_NAME( acatch_internal_TestCase )(            \
     ::ACatch::AutoReg::mkFixtureTest( QUALIFIEDMETHOD                          \
                                       , ::ACatch::TestCaseInfo( NAME ) ) );    \
-    }
+  }
 #define ACATCH_DISABLE_TEST_CASE_FIXTURE( ... )
 
 #define ACATCH_TEST_CASE_METHOD( QUALIFIEDMETHOD, NAME )                      \
   namespace {                                                                 \
-    ::ACatch::AutoReg ACATCH_UNIQUE_NAME( acatch_internal_TestCase )(         \
-      ::ACatch::AutoReg::mkMethodTest( QUALIFIEDMETHOD                        \
-                                       , ::ACatch::TestCaseInfo( NAME ) ) );  \
-      }
+  ::ACatch::AutoReg ACATCH_UNIQUE_NAME( acatch_internal_TestCase )(         \
+    ::ACatch::AutoReg::mkMethodTest( QUALIFIEDMETHOD                        \
+                                     , ::ACatch::TestCaseInfo( NAME ) ) );  \
+  }
 #define ACATCH_DISABLE_TEST_CASE_METHOD( ... )
 
 /// Define a a section block within a test-case.
@@ -212,10 +220,10 @@
 
 
 #ifdef ACATCH_SELFTEST
- #include "acatch/test/test_exceptiontests.ipp"
- #include "acatch/test/test_parttracker.ipp"
- #include "acatch/test/test_tostringpair.ipp"
- #include "acatch/test/test_tostringtuple.ipp"
- #include "acatch/test/test_tostringvector.ipp"
- #include "acatch/test/test_tostringwhich.ipp"
+#  include "acatch/test/test_exceptiontests.ipp"
+#  include "acatch/test/test_parttracker.ipp"
+#  include "acatch/test/test_tostringpair.ipp"
+#  include "acatch/test/test_tostringtuple.ipp"
+#  include "acatch/test/test_tostringvector.ipp"
+#  include "acatch/test/test_tostringwhich.ipp"
 #endif // ACATCH_SELFTEST
