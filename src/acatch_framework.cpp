@@ -168,6 +168,10 @@ void Framework::handleFail( const MultiExpressionCapture& aExpr ) {
 
 
 void Framework::handleAbort( const std::string& aMessage ) {
+  if( mCurrentResult->isAborting() ) {
+    // don't throw exceptions recursively during exit from the test
+    return;
+  }
   mCurrentResult->logAbort();
   if( !aMessage.empty() )
     mCurrentResult->logMessage( TestCaseResult::Error, aMessage );
@@ -176,6 +180,10 @@ void Framework::handleAbort( const std::string& aMessage ) {
 
 
 void Framework::handleAbort( const MultiExpressionCapture& aExpr ) {
+  if( mCurrentResult->isAborting() ) {
+    // don't throw exceptions recursively during exit from the test
+    return;
+  }
   mCurrentResult->logAbort();
   for( const auto& expr : aExpr.getExpressions() ) {
     mCurrentResult->logMessage( TestCaseResult::Error_ExprRaw, expr.raw );
@@ -266,7 +274,7 @@ void Framework::runTestGuarded( ITestCase& aActiveTestCase ) {
     aActiveTestCase.invoke();
     fatalConditionHandler.reset();
     // duration = timer.getElapsedSeconds();
-  } catch( TestFailureException& ) {
+  } catch( TestFailureException ) {
     // This just means the test was aborted due to failure
   } catch( ... ) {
     mCurrentResult->logFail();
