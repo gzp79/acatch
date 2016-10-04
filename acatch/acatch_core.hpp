@@ -13,8 +13,13 @@
 //#define ACATCH_INTERNAL_ASSERT(...)  ... assert used for the internal erros of the test framework
 //#define ACATCH_SELFTEST              ... enable self test
 //#define ACATCH_SELFTEST_MUSTFAIL     ... enable self test those are successfull on failure
+//#define ACATCH_BREAK                 ... the os dependent break-on-debugger command (nop by default)
 
 #include "acatch_config.hpp"
+
+#if !defined( ACATCH_API ) || !defined( ACATCH_INTERNAL_ASSERT ) || !defined( ACATCH_BREAK )
+#  error "Some required define was not provided"
+#endif
 
 #include <algorithm>
 #include <atomic>
@@ -34,18 +39,28 @@ extern ACATCH_API bool isFailed();
 extern ACATCH_API bool isAborting();
 extern ACATCH_API void fatal( const std::string& aMessage );
 
+enum EBreak {
+  Break_Never,
+  Break_Critical,
+  Break_Abort,
+  Break_Fail,
+};
+
 inline bool constexpr alwaysTrue() {
   return true;
 }
+
 
 inline bool constexpr alwaysFalse() {
   return false;
 }
 
+
 struct TestFailureException {};
 
 /// During test for assertion this exception is thrown
-struct TestAssert {
+struct TestAssert
+{
   TestAssert() {
   }
 

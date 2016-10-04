@@ -26,6 +26,8 @@ public:
   void addFilter( const std::string& aPattern );
   bool matchFilter( const std::string& aName );
 
+  void setBreak( EBreak aBreak );
+
   void registerTestCase( ITestCase* aTestCase );
   void registerPreInit( FnPreInit aPreInit );
   void runPreinits();
@@ -54,6 +56,7 @@ public:
   }
 
 private:
+  EBreak mBreakOnError;
   std::vector<std::string> mPatterns;
   TestRegistry mTestRegistry;
   ITestReport* mTestReport;

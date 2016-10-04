@@ -29,7 +29,8 @@ void theACatchShutdown() {
 
 
 Framework::Framework()
-    : mTestReport( new SimpleTestReport() )
+    : mBreakOnError( Break_Never )
+    , mTestReport( new SimpleTestReport() )
     , mTrackerContext( nullptr )
     , mTestCaseTracker( nullptr )
     , mCurrentResult( nullptr )
@@ -59,11 +60,16 @@ bool Framework::matchFilter( const std::string& aName ) {
     return true;
 
   std::string ln = toLower( aName );
-  for( const auto& pattern : mPatterns ) {
+  for( const auto & pattern : mPatterns ) {
     if( checkPrefix( pattern, ln ) )
       return true;
   }
   return false;
+}
+
+
+void Framework::setBreak( EBreak aBreak ) {
+  mBreakOnError = aBreak;
 }
 
 
@@ -144,7 +150,7 @@ void Framework::handleSuccess( const std::string& aMessage ) {
 
 void Framework::handleSuccess( const MultiExpressionCapture& aExpr ) {
   mCurrentResult->logSuccess();
-  for( const auto& expr : aExpr.getExpressions() ) {
+  for( const auto & expr : aExpr.getExpressions() ) {
     mCurrentResult->logMessage( TestCaseResult::Info_ExprRaw, expr.raw );
     mCurrentResult->logMessage( TestCaseResult::Info_ExprExpanded, expr.expanded );
   }
@@ -152,6 +158,9 @@ void Framework::handleSuccess( const MultiExpressionCapture& aExpr ) {
 
 
 void Framework::handleFail( const std::string& aMessage ) {
+  if( mBreakOnError >= Break_Fail ) {
+    ACATCH_BREAK;
+  }
   mCurrentResult->logFail();
   if( !aMessage.empty() )
     mCurrentResult->logMessage( TestCaseResult::Error, aMessage );
@@ -159,8 +168,11 @@ void Framework::handleFail( const std::string& aMessage ) {
 
 
 void Framework::handleFail( const MultiExpressionCapture& aExpr ) {
+  if( mBreakOnError >= Break_Fail ) {
+    ACATCH_BREAK;
+  }
   mCurrentResult->logFail();
-  for( const auto& expr : aExpr.getExpressions() ) {
+  for( const auto & expr : aExpr.getExpressions() ) {
     mCurrentResult->logMessage( TestCaseResult::Error_ExprRaw, expr.raw );
     mCurrentResult->logMessage( TestCaseResult::Error_ExprExpanded, expr.expanded );
   }
@@ -171,6 +183,9 @@ void Framework::handleAbort( const std::string& aMessage ) {
   if( mCurrentResult->isAborting() ) {
     // don't throw exceptions recursively during exit from the test
     return;
+  }
+  if( mBreakOnError >= Break_Abort ) {
+    ACATCH_BREAK;
   }
   mCurrentResult->logAbort();
   if( !aMessage.empty() )
@@ -184,8 +199,11 @@ void Framework::handleAbort( const MultiExpressionCapture& aExpr ) {
     // don't throw exceptions recursively during exit from the test
     return;
   }
+  if( mBreakOnError >= Break_Abort ) {
+    ACATCH_BREAK;
+  }
   mCurrentResult->logAbort();
-  for( const auto& expr : aExpr.getExpressions() ) {
+  for( const auto & expr : aExpr.getExpressions() ) {
     mCurrentResult->logMessage( TestCaseResult::Error_ExprRaw, expr.raw );
     mCurrentResult->logMessage( TestCaseResult::Error_ExprExpanded, expr.expanded );
   }
@@ -194,6 +212,9 @@ void Framework::handleAbort( const MultiExpressionCapture& aExpr ) {
 
 
 void Framework::handleFatalErrorCondition( const std::string& aMessage ) {
+  if( mBreakOnError >= Break_Critical ) {
+    ACATCH_BREAK;
+  }
   mCurrentResult->logAbort();
   handleUnfinishedSections();
   if( !aMessage.empty() )
